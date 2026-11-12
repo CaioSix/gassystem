@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Flame,
   Clock,
   MapPin,
   CreditCard,
@@ -12,18 +11,24 @@ import {
   ClipboardPaste,
   CheckCircle2,
   ShieldCheck,
+  MessageCircle,
 } from 'lucide-react';
 import {
   PRODUCTS,
   PAYMENT_LABELS,
   PaymentMethod,
   STORE_HOURS_TEXT,
+  Order,
 } from '@/lib/types';
+import { formatNewOrderWhatsAppMessage } from '@/lib/whatsapp-notify';
 
 export default function CustomerOrderPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
+
+  const storeWhatsApp =
+    process.env.NEXT_PUBLIC_STORE_WHATSAPP || '5511999999999';
 
   // Default: 1x Botijão P13 selected for speed
   const [quantities, setQuantities] = useState<Record<string, number>>({
@@ -304,7 +309,20 @@ export default function CustomerOrderPage() {
         throw new Error(data.error || 'Não foi possível enviar seu pedido.');
       }
 
-      router.push(`/pedido/${data.order.id}`);
+      const createdOrder: Order = data.order;
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : '';
+      const whatsappMsg = formatNewOrderWhatsAppMessage(createdOrder, origin);
+      const whatsappUrl = `https://wa.me/${storeWhatsApp.replace(
+        /\D/g,
+        ''
+      )}?text=${encodeURIComponent(whatsappMsg)}`;
+
+      // Abre o WhatsApp para já enviar a mensagem do pedido direto para o número do dono
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+      // Leva o cliente para a tela de acompanhamento em tempo real
+      router.push(`/pedido/${createdOrder.id}`);
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : 'Erro ao enviar pedido.'
@@ -322,15 +340,25 @@ export default function CustomerOrderPage() {
         className="visually-hidden"
       />
 
-      {/* Header da Loja */}
+      {/* Header da Loja com a Logo Oficial Alexandre Gás */}
       <header className="store-header">
         <div className="store-header-top">
           <div className="store-brand">
-            <div className="store-brand-icon" aria-hidden="true">
-              <Flame size={28} />
-            </div>
+            <img
+              src="/alexandreGas.png"
+              alt="Logo Alexandre Gás"
+              className="store-logo-img"
+              width={72}
+              height={72}
+            />
             <div>
-              <h1 className="store-title">Alexandre Gás</h1>
+              <h1 className="store-title">
+                <span>ALEXANDRE</span>
+                <span className="store-title-highlight">GÁS</span>
+              </h1>
+              <p className="store-tagline">
+                Segurança • Qualidade • Confiança
+              </p>
               <p className="store-subtitle">
                 Olá! 😃 Peça rápido aqui e acompanhe sua entrega ao vivo
               </p>
@@ -366,7 +394,11 @@ export default function CustomerOrderPage() {
         </button>
 
         {showPasteBox && (
-          <div id="whatsapp-paste-panel" className="whatsapp-paste-box" style={{ marginBlockStart: '0.5rem' }}>
+          <div
+            id="whatsapp-paste-panel"
+            className="whatsapp-paste-box"
+            style={{ marginBlockStart: '0.5rem' }}
+          >
             <label htmlFor="whatsapp-paste">
               Cole abaixo a mensagem respondida do WhatsApp:
             </label>
@@ -388,7 +420,7 @@ export default function CustomerOrderPage() {
                   marginBlockStart: '0.5rem',
                   fontSize: '0.88rem',
                   fontWeight: 600,
-                  color: '#166534',
+                  color: '#0b3d91',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.35rem',
@@ -412,7 +444,7 @@ export default function CustomerOrderPage() {
         {/* 1. Escolha os Produtos */}
         <section className="card" aria-labelledby="heading-products">
           <h2 id="heading-products" className="section-title">
-            <ShoppingBag size={20} color="#ea580c" aria-hidden="true" />
+            <ShoppingBag size={20} color="#0b3d91" aria-hidden="true" />
             1. O que você precisa hoje?
           </h2>
 
@@ -467,7 +499,7 @@ export default function CustomerOrderPage() {
         {/* 2. Dados de Entrega */}
         <section className="card" aria-labelledby="heading-address">
           <h2 id="heading-address" className="section-title">
-            <MapPin size={20} color="#ea580c" aria-hidden="true" />
+            <MapPin size={20} color="#0b3d91" aria-hidden="true" />
             2. Dados para Entrega Rápida
           </h2>
 
@@ -617,7 +649,7 @@ export default function CustomerOrderPage() {
         {/* 3. Forma de Pagamento */}
         <section className="card" aria-labelledby="heading-payment">
           <h2 id="heading-payment" className="section-title">
-            <CreditCard size={20} color="#ea580c" aria-hidden="true" />
+            <CreditCard size={20} color="#0b3d91" aria-hidden="true" />
             3. Forma de Pagamento na Entrega
           </h2>
 
@@ -667,7 +699,7 @@ export default function CustomerOrderPage() {
         {/* Resumo e Botão de Finalizar */}
         <div className="summary-box">
           <div>
-            <div style={{ fontSize: '0.9rem', color: '#475569' }}>
+            <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
               Total do Pedido ({selectedItems.reduce((a, b) => a + b.quantity, 0)}{' '}
               item/itens)
             </div>
@@ -675,7 +707,7 @@ export default function CustomerOrderPage() {
               R$ {totalAmount.toFixed(2).replace('.', ',')}
             </div>
           </div>
-          <div style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 700 }}>
+          <div style={{ fontSize: '0.88rem', color: '#f5b800', fontWeight: 800 }}>
             Entrega Rápida 🛵
           </div>
         </div>
@@ -701,9 +733,12 @@ export default function CustomerOrderPage() {
           className="btn btn-primary"
           disabled={isSubmitting}
         >
+          <MessageCircle size={20} aria-hidden="true" />
           {isSubmitting
             ? 'Enviando seu pedido...'
-            : `Confirmar Pedido • R$ ${totalAmount.toFixed(2).replace('.', ',')}`}
+            : `Confirmar Pedido e Enviar • R$ ${totalAmount
+                .toFixed(2)
+                .replace('.', ',')}`}
         </button>
       </form>
 
@@ -712,10 +747,12 @@ export default function CustomerOrderPage() {
           marginBlockStart: '2.5rem',
           textAlign: 'center',
           fontSize: '0.85rem',
-          color: '#64748b',
+          color: '#475569',
         }}
       >
-        <p>Alexandre Gás — Distribuidora de Gás e Água</p>
+        <p>
+          <strong>Alexandre Gás</strong> — Segurança • Qualidade • Confiança
+        </p>
         <p style={{ marginBlockStart: '0.5rem' }}>
           <Link
             href="/admin"
@@ -724,6 +761,8 @@ export default function CustomerOrderPage() {
               alignItems: 'center',
               gap: '0.3rem',
               textDecoration: 'underline',
+              color: '#0b3d91',
+              fontWeight: 600,
             }}
           >
             <ShieldCheck size={14} aria-hidden="true" />

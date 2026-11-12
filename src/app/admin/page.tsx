@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Flame,
   CheckCircle2,
   Truck,
   PackageCheck,
@@ -33,13 +32,8 @@ export default function AdminDashboardPage() {
     'open'
   );
   const [copiedGreeting, setCopiedGreeting] = useState(false);
+  const [autoAcceptedBanner, setAutoAcceptedBanner] = useState('');
   const [originUrl, setOriginUrl] = useState('https://alexandre-gas.vercel.app');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setOriginUrl(window.location.origin);
-    }
-  }, []);
 
   const fetchOrders = async () => {
     try {
@@ -55,6 +49,36 @@ export default function AdminDashboardPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOriginUrl(window.location.origin);
+
+      // Se o dono clicou no link "Aceitar pedido em 1 clique" recebido no WhatsApp (?accept=ID)
+      const params = new URLSearchParams(window.location.search);
+      const acceptId = params.get('accept');
+      if (acceptId) {
+        fetch(`/api/orders/${acceptId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'accepted' }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data?.order) {
+              setAutoAcceptedBanner(
+                `✅ Pedido #${acceptId
+                  .slice(0, 6)
+                  .toUpperCase()} (${data.order.customer_name}) foi ACEITO com sucesso e já atualizou na tela do cliente!`
+              );
+              fetchOrders();
+              window.history.replaceState({}, '', '/admin');
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchOrders();
@@ -166,13 +190,23 @@ Domingos 08 as 13:30.`;
       <header className="store-header">
         <div className="store-header-top">
           <div className="store-brand">
-            <div className="store-brand-icon" aria-hidden="true">
-              <Flame size={28} />
-            </div>
+            <img
+              src="/alexandreGas.png"
+              alt="Logo Alexandre Gás"
+              className="store-logo-img"
+              width={72}
+              height={72}
+            />
             <div>
-              <h1 className="store-title">Painel do Dono • Alexandre Gás</h1>
+              <h1 className="store-title">
+                <span>PAINEL</span>
+                <span className="store-title-highlight">ALEXANDRE GÁS</span>
+              </h1>
+              <p className="store-tagline">
+                Segurança • Qualidade • Confiança
+              </p>
               <p className="store-subtitle">
-                Gerenciamento de pedidos em tempo real (Aceitou aqui, muda na tela do cliente!)
+                Gerenciamento em tempo real (Aceitou aqui ou pelo link do WhatsApp, muda na tela do cliente!)
               </p>
             </div>
           </div>
@@ -199,6 +233,23 @@ Domingos 08 as 13:30.`;
         </div>
       </header>
 
+      {autoAcceptedBanner && (
+        <div
+          role="status"
+          style={{
+            background: '#dcfce7',
+            border: '2px solid #16a34a',
+            color: '#14532d',
+            padding: '1rem 1.25rem',
+            borderRadius: '12px',
+            fontWeight: 700,
+            marginBlockEnd: '1.25rem',
+          }}
+        >
+          {autoAcceptedBanner}
+        </div>
+      )}
+
       {/* Abas de Navegação */}
       <div
         style={{
@@ -220,8 +271,8 @@ Domingos 08 as 13:30.`;
           {pendingCount > 0 && (
             <span
               style={{
-                background: '#ffffff',
-                color: '#c2410c',
+                background: '#041b4d',
+                color: '#f5b800',
                 borderRadius: '999px',
                 padding: '0.1rem 0.55rem',
                 fontSize: '0.82rem',
@@ -253,7 +304,7 @@ Domingos 08 as 13:30.`;
           style={{ width: 'auto', minHeight: '46px' }}
         >
           <MessageCircle size={18} aria-hidden="true" />
-          Mensagem Automática do WhatsApp
+          Configuração do WhatsApp
         </button>
       </div>
 
@@ -262,15 +313,14 @@ Domingos 08 as 13:30.`;
         <section className="card">
           <h2 className="section-title">
             <MessageCircle size={22} color="#16a34a" aria-hidden="true" />
-            Texto pronto para a Mensagem de Saudação do WhatsApp Business
+            1. Mensagem Automática de Saudação no WhatsApp Business (Grátis)
           </h2>
           <p style={{ color: '#475569', marginBlockEnd: '1rem', fontSize: '0.95rem' }}>
-            Copie o texto abaixo e cole em{' '}
+            No aplicativo <strong>WhatsApp Business</strong> você não paga nada para enviar essa mensagem automática! Basta ir em{' '}
             <strong>
-              Ferramentas comerciais → Mensagem de saudação
-            </strong>{' '}
-            no seu aplicativo WhatsApp Business. Assim que o cliente mandar um
-            &ldquo;Oi&rdquo;, ele receberá automaticamente o link do pedido e o modelo!
+              Configurações → Ferramentas comerciais → Mensagem de saudação
+            </strong>
+            , ativar e colar o texto abaixo com o link do seu site:
           </p>
 
           <pre
@@ -301,10 +351,26 @@ Domingos 08 as 13:30.`;
             ) : (
               <>
                 <Copy size={18} aria-hidden="true" />
-                Copiar Mensagem para o WhatsApp
+                Copiar Mensagem para o WhatsApp Business
               </>
             )}
           </button>
+
+          <hr
+            style={{
+              marginBlock: '1.5rem',
+              border: 'none',
+              borderTop: '1px solid #cbd5e1',
+            }}
+          />
+
+          <h3 className="section-title" style={{ marginBlockEnd: '0.5rem' }}>
+            2. Como o pedido chega no seu WhatsApp (Painel 100% Facultativo)
+          </h3>
+          <p style={{ color: '#475569', fontSize: '0.94rem' }}>
+            • Assim que o cliente confirma o pedido no site, o próprio sistema já abre o WhatsApp com todos os dados preenchidos enviando para o seu número (e inclui um link de <strong>1 clique para você aceitar o pedido direto pelo WhatsApp</strong> se quiser atualizar a tela do cliente).
+            <br />• Além disso, a Lambda da Vercel suporta envio silencioso em segundo plano via <strong>CallMeBot (100% gratuito)</strong> ou qualquer Webhook de WhatsApp (basta definir <code>CALLMEBOT_API_KEY</code> ou <code>WHATSAPP_WEBHOOK_URL</code> na Vercel).
+          </p>
         </section>
       )}
 
@@ -323,7 +389,7 @@ Domingos 08 as 13:30.`;
                   : 'Nenhum pedido finalizado ainda'}
               </p>
               <p style={{ color: '#64748b', fontSize: '0.92rem' }}>
-                Assim que um cliente enviar um pedido pelo link, ele aparecerá aqui automaticamente.
+                Assim que um cliente enviar um pedido pelo link, ele aparecerá aqui e no seu WhatsApp.
               </p>
             </div>
           ) : (
@@ -375,6 +441,7 @@ Domingos 08 as 13:30.`;
                           style={{
                             fontSize: '1.2rem',
                             fontWeight: 800,
+                            color: '#041b4d',
                             marginBlockEnd: '0.35rem',
                           }}
                         >
@@ -390,14 +457,14 @@ Domingos 08 as 13:30.`;
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <Phone size={15} color="#ea580c" aria-hidden="true" />
+                            <Phone size={15} color="#0b3d91" aria-hidden="true" />
                             <span>{order.phone}</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
                             <MapPin
                               size={16}
-                              color="#ea580c"
+                              color="#0b3d91"
                               style={{ marginTop: '3px', flexShrink: 0 }}
                               aria-hidden="true"
                             />
@@ -407,7 +474,7 @@ Domingos 08 as 13:30.`;
                               </div>
                               <div>Bairro: {order.neighborhood}</div>
                               {order.reference && (
-                                <div style={{ color: '#b45309', fontWeight: 600 }}>
+                                <div style={{ color: '#b45309', fontWeight: 700 }}>
                                   Ref: {order.reference}
                                 </div>
                               )}
@@ -427,7 +494,7 @@ Domingos 08 as 13:30.`;
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <CreditCard size={15} color="#ea580c" aria-hidden="true" />
+                            <CreditCard size={15} color="#0b3d91" aria-hidden="true" />
                             <span>
                               {PAYMENT_LABELS[order.payment_method]}
                               {order.change_for
@@ -473,7 +540,7 @@ Domingos 08 as 13:30.`;
                               justifyContent: 'space-between',
                               fontWeight: 800,
                               fontSize: '1.08rem',
-                              color: '#c2410c',
+                              color: '#0b3d91',
                               marginBlockStart: '0.35rem',
                             }}
                           >

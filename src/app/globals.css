@@ -1,12 +1,17 @@
 :root {
-  --bg: #f8fafc;
+  --bg: #f1f5f9;
   --surface: #ffffff;
-  --surface-muted: #f1f5f9;
+  --surface-muted: #f8fafc;
   --text: #0f172a;
   --text-muted: #475569;
-  --primary: #ea580c;
-  --primary-hover: #c2410c;
-  --primary-light: #fff7ed;
+  --navy-dark: #041b4d;
+  --navy: #072a73;
+  --primary: #0b3d91;
+  --primary-hover: #062863;
+  --primary-light: #eff6ff;
+  --gold: #f5b800;
+  --gold-hover: #d9a000;
+  --gold-light: #fef9c3;
   --blue: #0284c7;
   --green: #16a34a;
   --green-light: #dcfce7;
@@ -14,10 +19,10 @@
   --amber-light: #fef3c7;
   --danger: #d93025;
   --danger-light: #fce8e6;
-  --border: #767676;
+  --border: #64748b;
   --border-subtle: #cbd5e1;
-  --radius: 12px;
-  --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+  --radius: 14px;
+  --shadow: 0 6px 24px -4px rgba(4, 27, 77, 0.12);
 }
 
 * {
@@ -68,11 +73,12 @@ a {
   padding-block-end: 4rem;
 }
 
-/* Hero / Store Header */
+/* Hero / Store Header - Alexandre Gás Brand Colors (Navy Blue + Gold) */
 .store-header {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--primary) 65%, #0e4bb5 100%);
   color: #ffffff;
   border-radius: var(--radius);
+  border-bottom: 4px solid var(--gold);
   padding: 1.5rem;
   margin-block-end: 1.25rem;
   box-shadow: var(--shadow);
@@ -89,35 +95,57 @@ a {
 .store-brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.store-brand-icon {
-  background: rgba(255, 255, 255, 0.2);
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
+.store-logo-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--gold);
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  flex-shrink: 0;
 }
 
 .store-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.store-title-highlight {
+  background: var(--gold);
+  color: var(--navy-dark);
+  padding: 0.05rem 0.45rem;
+  border-radius: 6px;
+}
+
+.store-tagline {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-block-top: 0.1rem;
 }
 
 .store-subtitle {
   font-size: 0.9rem;
-  opacity: 0.92;
+  opacity: 0.94;
+  margin-block-start: 0.2rem;
 }
 
 .hours-card {
   margin-block-start: 1rem;
-  background: rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
+  background: rgba(4, 27, 77, 0.55);
+  border: 1px solid rgba(245, 184, 0, 0.35);
+  border-radius: 10px;
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
   display: flex;
@@ -127,6 +155,7 @@ a {
 
 .hours-title {
   font-weight: 700;
+  color: var(--gold);
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -144,12 +173,12 @@ a {
 
 .section-title {
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 800;
   margin-block-end: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text);
+  color: var(--navy-dark);
 }
 
 /* Product Selector */
@@ -161,7 +190,7 @@ a {
 
 .product-item {
   border: 1.5px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 0.875rem;
   display: flex;
   align-items: center;
@@ -173,6 +202,7 @@ a {
 .product-item.selected {
   border-color: var(--primary);
   background-color: var(--primary-light);
+  box-shadow: inset 0 0 0 1px var(--primary);
 }
 
 .product-info {
@@ -182,6 +212,7 @@ a {
 .product-name {
   font-weight: 700;
   font-size: 1rem;
+  color: var(--navy-dark);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -189,11 +220,11 @@ a {
 }
 
 .product-badge {
-  background: var(--primary);
-  color: #fff;
+  background: var(--gold);
+  color: var(--navy-dark);
   font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
+  font-weight: 800;
+  padding: 0.15rem 0.55rem;
   border-radius: 999px;
   text-transform: uppercase;
 }
@@ -206,7 +237,7 @@ a {
 
 .product-price {
   font-weight: 800;
-  color: var(--primary-hover);
+  color: var(--primary);
   font-size: 1.05rem;
   margin-block-start: 0.25rem;
 }
@@ -223,7 +254,7 @@ a {
   border-radius: 10px;
   border: 1.5px solid var(--border);
   background: var(--surface);
-  color: var(--text);
+  color: var(--navy-dark);
   font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
@@ -240,6 +271,10 @@ a {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+}
+
+.qty-btn.primary:hover {
+  background: var(--primary-hover);
 }
 
 .qty-value {
@@ -274,7 +309,7 @@ a {
 label {
   font-weight: 600;
   font-size: 0.95rem;
-  color: var(--text);
+  color: var(--navy-dark);
   display: inline-block;
   padding: 6px 0;
   margin: -6px 0;
@@ -324,7 +359,7 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 button:focus-visible {
-  outline: 3px solid #0b57d0;
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -385,7 +420,7 @@ fieldset.payment-fieldset legend {
 .radio-option:has(input:checked) {
   border-color: var(--primary);
   background-color: var(--primary-light);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .radio-option input[type='radio'] {
@@ -407,7 +442,7 @@ fieldset.payment-fieldset legend {
 .btn {
   font: inherit;
   font-size: max(1rem, 1em);
-  font-weight: 700;
+  font-weight: 800;
   min-height: 52px;
   padding: 0.75rem 1.25rem;
   border-radius: 10px;
@@ -427,20 +462,21 @@ fieldset.payment-fieldset legend {
 }
 
 .btn-primary {
-  background-color: var(--primary);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--gold) 0%, #eab308 100%);
+  color: var(--navy-dark);
+  border: 2px solid var(--navy-dark);
   width: 100%;
   font-size: 1.1rem;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+  box-shadow: 0 4px 14px rgba(245, 184, 0, 0.35);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--primary-hover);
+  background: var(--gold-hover);
 }
 
 .btn-secondary {
   background-color: var(--surface-muted);
-  color: var(--text);
+  color: var(--navy-dark);
   border: 1.5px solid var(--border-subtle);
 }
 
@@ -459,7 +495,7 @@ fieldset.payment-fieldset legend {
 
 .btn-whatsapp {
   background-color: #25d366;
-  color: #073b1a;
+  color: #052e16;
   font-weight: 800;
 }
 
@@ -469,9 +505,11 @@ fieldset.payment-fieldset legend {
 
 /* Order Summary Bar */
 .summary-box {
-  background: var(--surface-muted);
-  border-radius: 10px;
-  padding: 1rem;
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--primary) 100%);
+  color: #ffffff;
+  border-radius: 12px;
+  border: 2px solid var(--gold);
+  padding: 1rem 1.25rem;
   margin-block-end: 1.25rem;
   display: flex;
   align-items: center;
@@ -479,9 +517,9 @@ fieldset.payment-fieldset legend {
 }
 
 .summary-total {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--primary-hover);
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--gold);
 }
 
 /* Status Tracker */
@@ -494,14 +532,16 @@ fieldset.payment-fieldset legend {
 }
 
 .status-banner.pending {
-  background: var(--amber-light);
-  border-color: var(--amber);
+  background: var(--gold-light);
+  border-color: var(--gold);
+  color: var(--navy-dark);
 }
 
 .status-banner.accepted,
 .status-banner.delivering {
-  background: #e0f2fe;
-  border-color: var(--blue);
+  background: #dbeafe;
+  border-color: var(--primary);
+  color: var(--navy-dark);
 }
 
 .status-banner.completed {
@@ -535,8 +575,8 @@ fieldset.payment-fieldset legend {
 
 .step-item.active {
   background: var(--primary-light);
-  color: var(--primary-hover);
-  border: 1.5px solid var(--primary);
+  color: var(--navy-dark);
+  border: 2px solid var(--primary);
   font-weight: 700;
 }
 
@@ -547,15 +587,6 @@ fieldset.payment-fieldset legend {
 }
 
 /* Admin Dashboard Grid */
-.admin-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-block-end: 1.5rem;
-}
-
 .orders-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
@@ -575,16 +606,16 @@ fieldset.payment-fieldset legend {
 }
 
 .order-card.pending {
-  border-color: var(--amber);
+  border-color: var(--gold);
   background: #fffbeb;
 }
 
 .order-card.accepted {
-  border-color: var(--blue);
+  border-color: var(--primary);
 }
 
 .order-card.delivering {
-  border-color: #6366f1;
+  border-color: #4f46e5;
 }
 
 .badge {
@@ -594,17 +625,17 @@ fieldset.payment-fieldset legend {
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .badge.pending {
-  background: var(--amber-light);
-  color: #92400e;
+  background: var(--gold);
+  color: var(--navy-dark);
 }
 
 .badge.accepted {
   background: #dbeafe;
-  color: #1e40af;
+  color: var(--navy-dark);
 }
 
 .badge.delivering {
@@ -623,8 +654,8 @@ fieldset.payment-fieldset legend {
 }
 
 .whatsapp-paste-box {
-  background: #f0fdf4;
-  border: 1.5px dashed #16a34a;
+  background: var(--primary-light);
+  border: 1.5px dashed var(--primary);
   border-radius: 10px;
   padding: 1rem;
   margin-block-end: 1.25rem;

@@ -3,7 +3,6 @@
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import {
-  Flame,
   CheckCircle2,
   Clock,
   Truck,
@@ -20,6 +19,7 @@ import {
   STATUS_CONFIG,
 } from '@/lib/types';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
+import { formatNewOrderWhatsAppMessage } from '@/lib/whatsapp-notify';
 
 export default function OrderTrackingPage({
   params,
@@ -30,9 +30,16 @@ export default function OrderTrackingPage({
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [originUrl, setOriginUrl] = useState('');
 
   const storeWhatsApp =
     process.env.NEXT_PUBLIC_STORE_WHATSAPP || '5511999999999';
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOriginUrl(window.location.origin);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -158,7 +165,7 @@ export default function OrderTrackingPage({
   ];
 
   const whatsappMessage = encodeURIComponent(
-    `Olá, Alexandre Gás! 😃\nFiz o pedido #${order.id.slice(0, 6).toUpperCase()}\n\nNome: ${order.customer_name}\nEndereço: ${order.address}\nNumero: ${order.address_number}\nBairro: ${order.neighborhood}\nPonto de Referência: ${order.reference || 'Não informado'}\nTelefone: ${order.phone}\nPagamento: ${PAYMENT_LABELS[order.payment_method]}`
+    formatNewOrderWhatsAppMessage(order, originUrl)
   );
 
   return (
@@ -166,11 +173,21 @@ export default function OrderTrackingPage({
       <header className="store-header">
         <div className="store-header-top">
           <div className="store-brand">
-            <div className="store-brand-icon" aria-hidden="true">
-              <Flame size={28} />
-            </div>
+            <img
+              src="/alexandreGas.png"
+              alt="Logo Alexandre Gás"
+              className="store-logo-img"
+              width={72}
+              height={72}
+            />
             <div>
-              <h1 className="store-title">Alexandre Gás</h1>
+              <h1 className="store-title">
+                <span>ALEXANDRE</span>
+                <span className="store-title-highlight">GÁS</span>
+              </h1>
+              <p className="store-tagline">
+                Segurança • Qualidade • Confiança
+              </p>
               <p className="store-subtitle">
                 Acompanhamento ao vivo • Pedido #{order.id.slice(0, 6).toUpperCase()}
               </p>
@@ -244,7 +261,7 @@ export default function OrderTrackingPage({
       {/* Detalhes do Pedido e Endereço */}
       <section className="card">
         <h3 className="section-title">
-          <MapPin size={20} color="#ea580c" aria-hidden="true" />
+          <MapPin size={20} color="#0b3d91" aria-hidden="true" />
           Resumo dos Dados Enviados
         </h3>
 
@@ -303,7 +320,7 @@ export default function OrderTrackingPage({
               justifyContent: 'space-between',
               fontSize: '1.15rem',
               fontWeight: 800,
-              color: '#c2410c',
+              color: '#0b3d91',
               marginBlockStart: '0.4rem',
             }}
           >
@@ -321,7 +338,7 @@ export default function OrderTrackingPage({
           className="btn btn-whatsapp"
         >
           <MessageCircle size={20} aria-hidden="true" />
-          Falar com Alexandre Gás no WhatsApp
+          Enviar / Falar com Alexandre Gás no WhatsApp
         </a>
 
         <Link href="/" className="btn btn-secondary">

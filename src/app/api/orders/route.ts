@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOrder, listOrders } from '@/lib/store';
 import { PaymentMethod } from '@/lib/types';
+import { sendServerWhatsAppNotification } from '@/lib/whatsapp-notify';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,10 @@ export async function POST(request: NextRequest) {
       items,
       total,
     });
+
+    // Dispara notificação automática para o WhatsApp do dono (se CALLMEBOT_API_KEY ou WHATSAPP_WEBHOOK_URL estiver configurado)
+    const originUrl = request.nextUrl.origin;
+    await sendServerWhatsAppNotification(order, originUrl);
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
