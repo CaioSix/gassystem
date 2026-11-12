@@ -254,10 +254,16 @@ export default function CustomerOrderPage() {
       }
 
       const createdOrder: Order = data.order;
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : '';
+      const whatsappMsg = formatNewOrderWhatsAppMessage(createdOrder, origin);
+      const whatsappUrl = `https://wa.me/${storeWhatsApp}?text=${encodeURIComponent(
+        whatsappMsg
+      )}`;
 
-      // Leva o cliente direto para a tela de acompanhamento em tempo real
-      // (sem abrir o WhatsApp na tela do cliente)
-      router.push(`/pedido/${createdOrder.id}`);
+      // Redireciona o cliente direto para o WhatsApp já com a mensagem preenchida
+      // No celular isso abre o app do WhatsApp instantaneamente
+      window.location.href = whatsappUrl;
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : 'Erro ao enviar pedido.'
@@ -608,13 +614,14 @@ export default function CustomerOrderPage() {
 
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-whatsapp"
+          style={{ width: '100%', minHeight: '56px', fontSize: '1.15rem' }}
           disabled={isSubmitting}
         >
-          <CheckCircle2 size={20} aria-hidden="true" />
+          <MessageCircle size={24} aria-hidden="true" />
           {isSubmitting
-            ? 'Enviando seu pedido...'
-            : `Confirmar Pedido • R$ ${totalAmount
+            ? 'Preparando pedido...'
+            : `Enviar Pedido pelo WhatsApp • R$ ${totalAmount
                 .toFixed(2)
                 .replace('.', ',')}`}
         </button>
