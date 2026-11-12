@@ -8,8 +8,6 @@ import {
   MapPin,
   CreditCard,
   ShoppingBag,
-  ClipboardPaste,
-  CheckCircle2,
   ShieldCheck,
   MessageCircle,
 } from 'lucide-react';
@@ -43,10 +41,6 @@ export default function CustomerOrderPage() {
   const [reference, setReference] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
   const [changeFor, setChangeFor] = useState('');
-
-  const [showPasteBox, setShowPasteBox] = useState(false);
-  const [pasteText, setPasteText] = useState('');
-  const [pasteFeedback, setPasteFeedback] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -216,59 +210,6 @@ export default function CustomerOrderPage() {
     0
   );
 
-  // Parse pasted WhatsApp message in the format requested by Alexandre Gás
-  const handleParseWhatsAppText = (raw: string) => {
-    setPasteText(raw);
-    const lines = raw.split(/\r?\n/);
-    let filledCount = 0;
-
-    for (const line of lines) {
-      const clean = line.trim();
-      const matchNome = clean.match(/^nome\s*:\s*(.+)$/i);
-      if (matchNome?.[1]) {
-        setCustomerName(matchNome[1].trim());
-        filledCount++;
-      }
-      const matchEnd = clean.match(/^endere[cç]o\s*:\s*(.+)$/i);
-      if (matchEnd?.[1]) {
-        setAddress(matchEnd[1].trim());
-        filledCount++;
-      }
-      const matchNum = clean.match(/^n[uú]mero\s*:\s*(.+)$/i);
-      if (matchNum?.[1]) {
-        setAddressNumber(matchNum[1].trim());
-        filledCount++;
-      }
-      const matchBairro = clean.match(/^bairro\s*:\s*(.+)$/i);
-      if (matchBairro?.[1]) {
-        setNeighborhood(matchBairro[1].trim());
-        filledCount++;
-      }
-      const matchTel = clean.match(/^telefone\s*:\s*(.+)$/i);
-      if (matchTel?.[1]) {
-        setPhone(matchTel[1].trim());
-        filledCount++;
-      }
-      const matchRef = clean.match(/^(?:ponto de )?refer[eê]ncia\s*:\s*(.+)$/i);
-      if (matchRef?.[1]) {
-        setReference(matchRef[1].trim());
-        filledCount++;
-      }
-    }
-
-    if (filledCount > 0) {
-      setPasteFeedback(
-        `Pronto! Preenchemos ${filledCount} campo(s) automaticamente para você.`
-      );
-    } else if (raw.trim()) {
-      setPasteFeedback(
-        'Cole o texto com "Nome:", "Endereço:", "Numero:", "Bairro:", "Telefone:".'
-      );
-    } else {
-      setPasteFeedback('');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitError('');
@@ -376,63 +317,6 @@ export default function CustomerOrderPage() {
           ))}
         </div>
       </header>
-
-      {/* Atalho opcional para quem já copiou o modelo do WhatsApp */}
-      <div style={{ marginBlockEnd: '1rem' }}>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          style={{ width: '100%', minHeight: '44px', fontSize: '0.92rem' }}
-          aria-expanded={showPasteBox}
-          aria-controls="whatsapp-paste-panel"
-          onClick={() => setShowPasteBox((v) => !v)}
-        >
-          <ClipboardPaste size={18} aria-hidden="true" />
-          {showPasteBox
-            ? 'Fechar colagem rápida do WhatsApp'
-            : 'Já preencheu a mensagem no WhatsApp? Clique para colar aqui'}
-        </button>
-
-        {showPasteBox && (
-          <div
-            id="whatsapp-paste-panel"
-            className="whatsapp-paste-box"
-            style={{ marginBlockStart: '0.5rem' }}
-          >
-            <label htmlFor="whatsapp-paste">
-              Cole abaixo a mensagem respondida do WhatsApp:
-            </label>
-            <span id="paste-hint" className="hint">
-              Exemplo: Nome: João / Endereço: Rua A / Numero: 10 / Bairro: Centro / Telefone: 11999999999
-            </span>
-            <textarea
-              id="whatsapp-paste"
-              rows={5}
-              value={pasteText}
-              aria-describedby="paste-hint"
-              onChange={(e) => handleParseWhatsAppText(e.target.value)}
-              placeholder={`Nome:\nEndereço:\nNumero:\nBairro:\nTelefone:`}
-            />
-            {pasteFeedback && (
-              <p
-                role="status"
-                style={{
-                  marginBlockStart: '0.5rem',
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  color: '#0b3d91',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <CheckCircle2 size={16} aria-hidden="true" />
-                {pasteFeedback}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
 
       <form
         ref={formRef}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2,
@@ -15,6 +15,8 @@ import {
   Phone,
   CreditCard,
   ExternalLink,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import {
   Order,
@@ -34,21 +36,123 @@ export default function AdminDashboardPage() {
   const [copiedGreeting, setCopiedGreeting] = useState(false);
   const [autoAcceptedBanner, setAutoAcceptedBanner] = useState('');
   const [originUrl, setOriginUrl] = useState('https://alexandre-gas.vercel.app');
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const fetchOrders = async () => {
+  const knownOrderIdsRef = useRef<Set<string> | null>(null);
+  const soundEnabledRef = useRef(true);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  // Toca campainha sonora ("Ding-Dong-Ding!") quando chega pedido novo
+  const playNewOrderSound = useCallback(() => {
+    if (!soundEnabledRef.current || typeof window === 'undefined') return;
+    try {
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContextClass();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const playTone = (
+        freq: number,
+        startTime: number,
+        duration: number,
+        volume = 0.35
+      ) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        gain.gain.setValueAtTime(0.001, startTime);
+        gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
+
+      const now = ctx.currentTime;
+      // Campainha dupla bem audível de loja/delivery (Mi5 -> Sol#5 -> Si5 | pausa | Mi5 -> Si5)
+      playTone(659.25, now, 0.22, 0.4);
+      playTone(830.61, now + 0.18, 0.22, 0.4);
+      playTone(987.77, now + 0.36, 0.45, 0.45);
+
+      playTone(659.25, now + 0.9, 0.22, 0.4);
+      playTone(987.77, now + 1.1, 0.55, 0.45);
+    } catch {
+      // Caso o navegador ainda aguarde o primeiro clique do usuário na página
+    }
+  }, []);
+
+  // Desbloqueia o AudioContext no primeiro clique do vendedor na tela
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (typeof window === 'undefined') return;
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AudioContextClass) return;
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContextClass();
+      }
+      if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
+    };
+    window.addEventListener('click', unlockAudio, { once: true });
+    return () => window.removeEventListener('click', unlockAudio);
+  }, []);
+
+  const fetchOrders = useCallback(async () => {
     try {
       const res = await fetch('/api/orders', { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.orders)) {
-        setOrders(data.orders);
+        const fetchedOrders: Order[] = data.orders;
+
+        // Verifica se entrou algum pedido novo (pending) desde a última listagem
+        if (knownOrderIdsRef.current === null) {
+          knownOrderIdsRef.current = new Set(fetchedOrders.map((o) => o.id));
+        } else {
+          let hasBrandNewPendingOrder = false;
+          for (const o of fetchedOrders) {
+            if (!knownOrderIdsRef.current.has(o.id)) {
+              knownOrderIdsRef.current.add(o.id);
+              if (o.status === 'pending') {
+                hasBrandNewPendingOrder = true;
+              }
+            }
+          }
+          if (hasBrandNewPendingOrder) {
+            playNewOrderSound();
+          }
+        }
+
+        setOrders(fetchedOrders);
       }
     } catch {
       // Ignore transient polling errors
     } finally {
       setLoading(false);
     }
-  };
+  }, [playNewOrderSound]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -78,7 +182,7 @@ export default function AdminDashboardPage() {
           .catch(() => {});
       }
     }
-  }, []);
+  }, [fetchOrders]);
 
   useEffect(() => {
     fetchOrders();
@@ -107,7 +211,19 @@ export default function AdminDashboardPage() {
         supabase.removeChannel(channel);
       }
     };
-  }, []);
+  }, [fetchOrders]);
+
+  // Repete o alerta sonoro a cada 15 segundos enquanto houver pedido pendente aguardando aceite
+  useEffect(() => {
+    const hasPending = orders.some((o) => o.status === 'pending');
+    if (!hasPending || !soundEnabled) return;
+
+    const reminderInterval = setInterval(() => {
+      playNewOrderSound();
+    }, 15000);
+
+    return () => clearInterval(reminderInterval);
+  }, [orders, soundEnabled, playNewOrderSound]);
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingId(orderId);
@@ -206,12 +322,44 @@ Domingos 08 as 13:30.`;
                 Segurança • Qualidade • Confiança
               </p>
               <p className="store-subtitle">
-                Gerenciamento em tempo real (Aceitou aqui ou pelo link do WhatsApp, muda na tela do cliente!)
+                Gerenciamento em tempo real com alerta sonoro de novos pedidos
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !soundEnabled;
+                setSoundEnabled(next);
+                soundEnabledRef.current = next;
+                if (next) playNewOrderSound();
+              }}
+              className="btn btn-secondary"
+              style={{
+                minHeight: '42px',
+                padding: '0.5rem 0.9rem',
+                fontSize: '0.9rem',
+                background: soundEnabled ? '#f5b800' : '#f8fafc',
+                color: '#041b4d',
+                borderColor: '#041b4d',
+              }}
+              title="Clique para ativar/desativar e testar o som de novo pedido"
+            >
+              {soundEnabled ? (
+                <>
+                  <Volume2 size={16} aria-hidden="true" />
+                  Som Ativo (Testar)
+                </>
+              ) : (
+                <>
+                  <VolumeX size={16} aria-hidden="true" />
+                  Som Mudo
+                </>
+              )}
+            </button>
+
             <button
               type="button"
               onClick={fetchOrders}
@@ -389,7 +537,7 @@ Domingos 08 as 13:30.`;
                   : 'Nenhum pedido finalizado ainda'}
               </p>
               <p style={{ color: '#64748b', fontSize: '0.92rem' }}>
-                Assim que um cliente enviar um pedido pelo link, ele aparecerá aqui e no seu WhatsApp.
+                Assim que um cliente enviar um pedido pelo link, você ouvirá o alerta sonoro e ele aparecerá aqui e no seu WhatsApp.
               </p>
             </div>
           ) : (
