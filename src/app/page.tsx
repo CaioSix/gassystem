@@ -18,15 +18,17 @@ import {
   STORE_HOURS_TEXT,
   Order,
 } from '@/lib/types';
-import { formatNewOrderWhatsAppMessage } from '@/lib/whatsapp-notify';
+import {
+  formatNewOrderWhatsAppMessage,
+  getPrimaryStoreWhatsApp,
+} from '@/lib/whatsapp-notify';
 
 export default function CustomerOrderPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
 
-  const storeWhatsApp =
-    process.env.NEXT_PUBLIC_STORE_WHATSAPP || '5511999999999';
+  const storeWhatsApp = getPrimaryStoreWhatsApp();
 
   // Default: 1x Botijão P13 selected for speed
   const [quantities, setQuantities] = useState<Record<string, number>>({

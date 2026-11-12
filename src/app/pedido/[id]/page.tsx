@@ -19,7 +19,10 @@ import {
   STATUS_CONFIG,
 } from '@/lib/types';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import { formatNewOrderWhatsAppMessage } from '@/lib/whatsapp-notify';
+import {
+  formatNewOrderWhatsAppMessage,
+  getPrimaryStoreWhatsApp,
+} from '@/lib/whatsapp-notify';
 
 export default function OrderTrackingPage({
   params,
@@ -32,8 +35,7 @@ export default function OrderTrackingPage({
   const [error, setError] = useState('');
   const [originUrl, setOriginUrl] = useState('');
 
-  const storeWhatsApp =
-    process.env.NEXT_PUBLIC_STORE_WHATSAPP || '5511999999999';
+  const storeWhatsApp = getPrimaryStoreWhatsApp();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

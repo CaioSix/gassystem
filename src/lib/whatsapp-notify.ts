@@ -1,5 +1,23 @@
 import { Order, PAYMENT_LABELS } from './types';
 
+/**
+ * Retorna a lista de telefones configurados em NEXT_PUBLIC_STORE_WHATSAPP
+ * Aceita 1 ou vários números separados por vírgula:
+ * Ex: "5511999991111,5511999992222,5511999993333,5511999994444"
+ */
+export function getStoreWhatsAppNumbers(): string[] {
+  const raw = process.env.NEXT_PUBLIC_STORE_WHATSAPP || '5511999999999';
+  const list = raw
+    .split(/[,;\s]+/)
+    .map((n) => n.replace(/\D/g, ''))
+    .filter(Boolean);
+  return list.length > 0 ? list : ['5511999999999'];
+}
+
+export function getPrimaryStoreWhatsApp(): string {
+  return getStoreWhatsAppNumbers()[0];
+}
+
 export function formatNewOrderWhatsAppMessage(
   order: Order,
   originUrl?: string
@@ -39,45 +57,79 @@ export function formatNewOrderWhatsAppMessage(
 }
 
 /**
- * Dispara notificação automática no servidor (Lambda) para o WhatsApp do dono,
- * caso CALLMEBOT_API_KEY (grátis) ou WHATSAPP_WEBHOOK_URL esteja configurado.
+ * Dispara notificação automática no servidor (Lambda da Vercel) para TODOS os 4 telefones
+ * simultaneamente em paralelo (Promise.allSettled).
+ *
+ * Formatos suportados nas variáveis de ambiente da Vercel:
+ * 1) WHATSAPP_RECIPIENTS="5511911111111:apikey1,5511922222222:apikey2,5511933333333:apikey3,5511944444444:apikey4"
+ *    (Usa CallMeBot gratuito para disparar no WhatsApp dos 4 aparelhos ao mesmo tempo!)
+ * 2) Ou NEXT_PUBLIC_STORE_WHATSAPP="num1,num2,num3,num4" + CALLMEBOT_API_KEY="key1,key2,key3,key4"
+ * 3) Ou WHATSAPP_WEBHOOK_URL (envia a lista completa `phones` para Evolution API / Z-API / n8n)
  */
 export async function sendServerWhatsAppNotification(
   order: Order,
   originUrl?: string
 ): Promise<void> {
-  const storePhone = (
-    process.env.NEXT_PUBLIC_STORE_WHATSAPP || ''
-  ).replace(/\D/g, '');
-  const callMeBotKey = process.env.CALLMEBOT_API_KEY || '';
+  const storePhones = getStoreWhatsAppNumbers();
+  const recipientsEnv = process.env.WHATSAPP_RECIPIENTS || '';
+  const callMeBotKeys = (process.env.CALLMEBOT_API_KEY || '')
+    .split(/[,;\s]+/)
+    .map((k) => k.trim())
+    .filter(Boolean);
   const webhookUrl = process.env.WHATSAPP_WEBHOOK_URL || '';
 
   const text = formatNewOrderWhatsAppMessage(order, originUrl);
+  const tasks: Promise<unknown>[] = [];
 
-  try {
-    // Opção 1: CallMeBot (100% Gratuito para enviar alertas para o próprio WhatsApp do dono)
-    if (storePhone && callMeBotKey) {
-      const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(
-        storePhone
-      )}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(
-        callMeBotKey
-      )}`;
-      await fetch(url, { method: 'GET' });
+  // 1. Se WHATSAPP_RECIPIENTS estiver configurado no formato "telefone:apikey,telefone2:apikey2"
+  if (recipientsEnv.trim()) {
+    const pairs = recipientsEnv
+      .split(/[,;]+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    for (const pair of pairs) {
+      const [rawPhone, apiKey] = pair.split(':').map((s) => s?.trim());
+      const cleanPhone = (rawPhone || '').replace(/\D/g, '');
+      if (cleanPhone && apiKey) {
+        const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(
+          cleanPhone
+        )}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(
+          apiKey
+        )}`;
+        tasks.push(fetch(url, { method: 'GET' }));
+      }
     }
+  } else if (callMeBotKeys.length > 0) {
+    // 2. Se configurou NEXT_PUBLIC_STORE_WHATSAPP com 4 números e CALLMEBOT_API_KEY com as chaves correspondentes
+    storePhones.forEach((phone, idx) => {
+      const key = callMeBotKeys[idx] || callMeBotKeys[0];
+      if (phone && key) {
+        const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(
+          phone
+        )}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(key)}`;
+        tasks.push(fetch(url, { method: 'GET' }));
+      }
+    });
+  }
 
-    // Opção 2: Webhook genérico (Evolution API, Z-API, n8n, Make, Meta Cloud API)
-    if (webhookUrl) {
-      await fetch(webhookUrl, {
+  // 3. Se tiver um Webhook (Z-API, Evolution API, n8n, Make), dispara para todos os telefones juntos
+  if (webhookUrl) {
+    tasks.push(
+      fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: storePhone,
+          phones: storePhones,
+          phone: storePhones[0],
           message: text,
           order,
         }),
-      });
-    }
-  } catch (err) {
-    console.error('Aviso: falha ao disparar webhook de WhatsApp:', err);
+      })
+    );
+  }
+
+  if (tasks.length > 0) {
+    await Promise.allSettled(tasks);
   }
 }

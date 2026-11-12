@@ -25,6 +25,7 @@ import {
   STATUS_CONFIG,
 } from '@/lib/types';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
+import { getStoreWhatsAppNumbers } from '@/lib/whatsapp-notify';
 
 export default function AdminDashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -513,12 +514,41 @@ Domingos 08 as 13:30.`;
           />
 
           <h3 className="section-title" style={{ marginBlockEnd: '0.5rem' }}>
-            2. Como o pedido chega no seu WhatsApp (Painel 100% Facultativo)
+            2. Como os 4 Telefones recebem o pedido juntos ao mesmo tempo
           </h3>
-          <p style={{ color: '#475569', fontSize: '0.94rem' }}>
-            • Assim que o cliente confirma o pedido no site, o próprio sistema já abre o WhatsApp com todos os dados preenchidos enviando para o seu número (e inclui um link de <strong>1 clique para você aceitar o pedido direto pelo WhatsApp</strong> se quiser atualizar a tela do cliente).
-            <br />• Além disso, a Lambda da Vercel suporta envio silencioso em segundo plano via <strong>CallMeBot (100% gratuito)</strong> ou qualquer Webhook de WhatsApp (basta definir <code>CALLMEBOT_API_KEY</code> ou <code>WHATSAPP_WEBHOOK_URL</code> na Vercel).
-          </p>
+          <div style={{ color: '#334155', fontSize: '0.94rem', display: 'grid', gap: '0.75rem' }}>
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.85rem 1rem', borderRadius: '10px' }}>
+              <strong>📱 Telefones configurados em NEXT_PUBLIC_STORE_WHATSAPP ({getStoreWhatsAppNumbers().length}):</strong>
+              <div style={{ marginTop: '0.35rem', fontWeight: 700, color: '#0b3d91' }}>
+                {getStoreWhatsAppNumbers().join(' • ')}
+              </div>
+              <div style={{ fontSize: '0.84rem', marginTop: '0.25rem', color: '#475569' }}>
+                Para configurar os 4 números na Vercel, basta separar por vírgula:
+                <br />
+                <code>NEXT_PUBLIC_STORE_WHATSAPP = 5511911111111,5511922222222,5511933333333,5511944444444</code>
+              </div>
+            </div>
+
+            <div>
+              <strong>🔔 Forma A — Painel Aberto nos 4 Celulares (Grátis e Instantâneo):</strong>
+              <br />
+              Basta abrir <code>{originUrl}/admin</code> nos 4 celulares e deixar o botão <strong>&ldquo;Som Ativo&rdquo;</strong> ligado. Quando entrar um pedido novo, <strong>os 4 celulares tocam a campainha juntos na mesma hora!</strong> Assim que qualquer um dos 4 clicar em &ldquo;Aceitar Pedido&rdquo;, já muda nos outros 3 celulares para ninguém entregar duplicado.
+            </div>
+
+            <div>
+              <strong>💬 Forma B — Disparo Automático no WhatsApp dos 4 Celulares pela Lambda (Grátis via CallMeBot):</strong>
+              <br />
+              Como o WhatsApp do cliente só abre conversa com 1 número por vez, a nossa Lambda da Vercel dispara a mensagem para os 4 números em paralelo! Para ativar gratuitamente:
+              <ol style={{ marginInlineStart: '1.25rem', marginTop: '0.35rem' }}>
+                <li>Em cada um dos 4 celulares, adicione o contato <strong>+34 644 52 74 88</strong> e mande no WhatsApp a frase: <code>I allow callmebot to send me messages</code></li>
+                <li>O bot vai responder na hora com uma <code>apikey</code> para cada celular.</li>
+                <li>Na Vercel, crie a variável <code>WHATSAPP_RECIPIENTS</code> com os 4 números e suas chaves separados por vírgula:
+                  <br />
+                  <code>5511911111111:chave1,5511922222222:chave2,5511933333333:chave3,5511944444444:chave4</code>
+                </li>
+              </ol>
+            </div>
+          </div>
         </section>
       )}
 
