@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   ShieldCheck,
   MessageCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   PRODUCTS,
@@ -253,18 +254,9 @@ export default function CustomerOrderPage() {
       }
 
       const createdOrder: Order = data.order;
-      const origin =
-        typeof window !== 'undefined' ? window.location.origin : '';
-      const whatsappMsg = formatNewOrderWhatsAppMessage(createdOrder, origin);
-      const whatsappUrl = `https://wa.me/${storeWhatsApp.replace(
-        /\D/g,
-        ''
-      )}?text=${encodeURIComponent(whatsappMsg)}`;
 
-      // Abre o WhatsApp para já enviar a mensagem do pedido direto para o número do dono
-      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-
-      // Leva o cliente para a tela de acompanhamento em tempo real
+      // Leva o cliente direto para a tela de acompanhamento em tempo real
+      // (sem abrir o WhatsApp na tela do cliente)
       router.push(`/pedido/${createdOrder.id}`);
     } catch (err) {
       setSubmitError(
@@ -619,10 +611,10 @@ export default function CustomerOrderPage() {
           className="btn btn-primary"
           disabled={isSubmitting}
         >
-          <MessageCircle size={20} aria-hidden="true" />
+          <CheckCircle2 size={20} aria-hidden="true" />
           {isSubmitting
             ? 'Enviando seu pedido...'
-            : `Confirmar Pedido e Enviar • R$ ${totalAmount
+            : `Confirmar Pedido • R$ ${totalAmount
                 .toFixed(2)
                 .replace('.', ',')}`}
         </button>
