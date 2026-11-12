@@ -32,5 +32,9 @@ create policy "Permitir atualizacao de status dos pedidos"
   on public.orders for update
   using (true);
 
+create policy "Permitir exclusao de pedidos"
+  on public.orders for delete
+  using (true);
+
 -- Habilita Realtime para a tabela orders (atualização instantânea na tela do cliente e do dono)
 alter publication supabase_realtime add table public.orders;

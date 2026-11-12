@@ -182,3 +182,20 @@ export async function updateOrderStatus(
   writeLocalOrders(orders);
   return orders[idx];
 }
+
+export async function deleteOrder(id: string): Promise<boolean> {
+  const supabase = getSupabaseClient();
+  if (supabase && isSupabaseConfigured) {
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) {
+      throw new Error(error.message);
+    }
+    return true;
+  }
+
+  const orders = readLocalOrders();
+  const filtered = orders.filter((o) => o.id !== id);
+  if (filtered.length === orders.length) return false;
+  writeLocalOrders(filtered);
+  return true;
+}

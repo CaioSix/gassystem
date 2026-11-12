@@ -17,6 +17,8 @@ import {
   ExternalLink,
   Volume2,
   VolumeX,
+  Trash2,
+  Calendar,
 } from 'lucide-react';
 import {
   Order,
@@ -38,6 +40,7 @@ export default function AdminDashboardPage() {
   const [autoAcceptedBanner, setAutoAcceptedBanner] = useState('');
   const [originUrl, setOriginUrl] = useState('https://alexandre-gas.vercel.app');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [dateFilter, setDateFilter] = useState(''); // 'YYYY-MM-DD' ou vazio para todos
 
   const knownOrderIdsRef = useRef<Set<string> | null>(null);
   const soundEnabledRef = useRef(true);
@@ -226,6 +229,25 @@ export default function AdminDashboardPage() {
     return () => clearInterval(reminderInterval);
   }, [orders, soundEnabled, playNewOrderSound]);
 
+  const handleDeleteOrder = async (orderId: string, customerName: string) => {
+    if (!window.confirm(`Deseja realmente apagar o pedido de "${customerName}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      } else {
+        alert('Erro ao excluir pedido');
+      }
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingId(orderId);
     try {
@@ -293,13 +315,19 @@ Domingos 08 as 13:30.`;
     setTimeout(() => setCopiedGreeting(false), 3000);
   };
 
-  const openOrders = orders.filter((o) =>
+  const filteredOrders = orders.filter((o) => {
+    if (!dateFilter) return true;
+    const orderDate = new Date(o.created_at).toISOString().split('T')[0];
+    return orderDate === dateFilter;
+  });
+
+  const openOrders = filteredOrders.filter((o) =>
     ['pending', 'accepted', 'delivering'].includes(o.status)
   );
-  const closedOrders = orders.filter((o) =>
+  const closedOrders = filteredOrders.filter((o) =>
     ['completed', 'cancelled'].includes(o.status)
   );
-  const pendingCount = orders.filter((o) => o.status === 'pending').length;
+  const pendingCount = filteredOrders.filter((o) => o.status === 'pending').length;
 
   return (
     <main className="admin-container">
@@ -399,62 +427,102 @@ Domingos 08 as 13:30.`;
         </div>
       )}
 
-      {/* Abas de Navegação */}
+      {/* Barra de Filtro de Data e Abas de Navegação */}
       <div
         style={{
           display: 'flex',
-          gap: '0.5rem',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           flexWrap: 'wrap',
+          gap: '0.75rem',
           marginBlockEnd: '1.25rem',
+          background: '#ffffff',
+          padding: '0.85rem 1rem',
+          borderRadius: '12px',
+          border: '1.5px solid #cbd5e1',
         }}
       >
-        <button
-          type="button"
-          onClick={() => setActiveTab('open')}
-          className={`btn ${
-            activeTab === 'open' ? 'btn-primary' : 'btn-secondary'
-          }`}
-          style={{ width: 'auto', minHeight: '46px' }}
-        >
-          Pedidos em Andamento ({openOrders.length})
-          {pendingCount > 0 && (
-            <span
-              style={{
-                background: '#041b4d',
-                color: '#f5b800',
-                borderRadius: '999px',
-                padding: '0.1rem 0.55rem',
-                fontSize: '0.82rem',
-                fontWeight: 800,
-              }}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('open')}
+            className={`btn ${
+              activeTab === 'open' ? 'btn-primary' : 'btn-secondary'
+            }`}
+            style={{ width: 'auto', minHeight: '42px', padding: '0.4rem 0.9rem', fontSize: '0.9rem' }}
+          >
+            Em Andamento ({openOrders.length})
+            {pendingCount > 0 && (
+              <span
+                style={{
+                  background: '#041b4d',
+                  color: '#f5b800',
+                  borderRadius: '999px',
+                  padding: '0.1rem 0.55rem',
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  marginLeft: '0.35rem',
+                }}
+              >
+                {pendingCount} novo(s)!
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('closed')}
+            className={`btn ${
+              activeTab === 'closed' ? 'btn-primary' : 'btn-secondary'
+            }`}
+            style={{ width: 'auto', minHeight: '42px', padding: '0.4rem 0.9rem', fontSize: '0.9rem' }}
+          >
+            Concluídos / Histórico ({closedOrders.length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('whatsapp')}
+            className={`btn ${
+              activeTab === 'whatsapp' ? 'btn-primary' : 'btn-secondary'
+            }`}
+            style={{ width: 'auto', minHeight: '42px', padding: '0.4rem 0.9rem', fontSize: '0.9rem' }}
+          >
+            <MessageCircle size={16} aria-hidden="true" />
+            Config. WhatsApp
+          </button>
+        </div>
+
+        {/* Filtro por Data */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <label htmlFor="filter-date" style={{ fontSize: '0.88rem', fontWeight: 700, color: '#041b4d', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Calendar size={16} color="#0b3d91" aria-hidden="true" />
+            Filtrar Data:
+          </label>
+          <input
+            type="date"
+            id="filter-date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            style={{
+              padding: '0.4rem 0.6rem',
+              borderRadius: '8px',
+              border: '1.5px solid #64748b',
+              fontSize: '0.9rem',
+              minHeight: '38px',
+            }}
+          />
+          {dateFilter && (
+            <button
+              type="button"
+              onClick={() => setDateFilter('')}
+              className="btn btn-secondary"
+              style={{ minHeight: '38px', padding: '0.3rem 0.65rem', fontSize: '0.82rem' }}
             >
-              {pendingCount} novo(s)!
-            </span>
+              Ver Todas as Datas
+            </button>
           )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('closed')}
-          className={`btn ${
-            activeTab === 'closed' ? 'btn-primary' : 'btn-secondary'
-          }`}
-          style={{ width: 'auto', minHeight: '46px' }}
-        >
-          Concluídos / Histórico ({closedOrders.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('whatsapp')}
-          className={`btn ${
-            activeTab === 'whatsapp' ? 'btn-primary' : 'btn-secondary'
-          }`}
-          style={{ width: 'auto', minHeight: '46px' }}
-        >
-          <MessageCircle size={18} aria-hidden="true" />
-          Configuração do WhatsApp
-        </button>
+        </div>
       </div>
 
       {/* Aba de Mensagem de Saudação do WhatsApp */}
@@ -835,6 +903,25 @@ Domingos 08 as 13:30.`;
                                 Cancelar
                               </button>
                             )}
+
+                          <button
+                            type="button"
+                            disabled={isBusy}
+                            onClick={() =>
+                              handleDeleteOrder(order.id, order.customer_name)
+                            }
+                            className="btn btn-secondary"
+                            style={{
+                              minHeight: '38px',
+                              fontSize: '0.82rem',
+                              padding: '0.4rem 0.65rem',
+                              color: '#64748b',
+                            }}
+                            title="Apagar este pedido permanentemente"
+                          >
+                            <Trash2 size={15} aria-hidden="true" />
+                            Apagar
+                          </button>
                         </div>
                       </div>
                     </article>

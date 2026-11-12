@@ -55,3 +55,18 @@ export async function PATCH(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    const { deleteOrder } = await import('@/lib/store');
+    await deleteOrder(id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao deletar pedido';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
