@@ -30,7 +30,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  price: number;
+  price?: number;
   badge?: string;
 }
 
@@ -39,26 +39,22 @@ export const PRODUCTS: Product[] = [
     id: 'gas-p13',
     name: 'Botijão de Gás P13 (13kg)',
     description: 'Gás de cozinha residencial (troca de vasilhame)',
-    price: 115.0,
     badge: 'Mais pedido',
   },
   {
     id: 'agua-20l',
     name: 'Galão de Água Mineral 20L',
     description: 'Água mineral natural (troca de galão)',
-    price: 16.0,
   },
   {
     id: 'gas-p45',
     name: 'Cilindro de Gás P45 (45kg)',
     description: 'Ideal para comércio e condomínios',
-    price: 420.0,
   },
   {
     id: 'kit-regulador',
     name: 'Kit Regulador + Mangueira Normatizada',
     description: 'Com selo INMETRO e instalação inclusa',
-    price: 65.0,
   },
 ];
 

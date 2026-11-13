@@ -203,7 +203,7 @@ export default function CustomerOrderPage() {
     (p) => ({
       id: p.id,
       name: p.name,
-      price: p.price,
+      price: p.price || 0,
       quantity: quantities[p.id],
     })
   );
@@ -348,9 +348,6 @@ export default function CustomerOrderPage() {
                       )}
                     </div>
                     <p className="product-desc">{product.description}</p>
-                    <p className="product-price">
-                      R$ {product.price.toFixed(2).replace('.', ',')}
-                    </p>
                   </div>
 
                   <div className="qty-controls">
@@ -584,11 +581,10 @@ export default function CustomerOrderPage() {
         <div className="summary-box">
           <div>
             <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
-              Total do Pedido ({selectedItems.reduce((a, b) => a + b.quantity, 0)}{' '}
-              item/itens)
+              Total selecionado:
             </div>
-            <div className="summary-total">
-              R$ {totalAmount.toFixed(2).replace('.', ',')}
+            <div className="summary-total" style={{ fontSize: '1.25rem' }}>
+              {selectedItems.reduce((a, b) => a + b.quantity, 0)} item/itens para entrega
             </div>
           </div>
           <div style={{ fontSize: '0.88rem', color: '#f5b800', fontWeight: 800 }}>
@@ -621,9 +617,7 @@ export default function CustomerOrderPage() {
           <MessageCircle size={24} aria-hidden="true" />
           {isSubmitting
             ? 'Preparando pedido...'
-            : `Enviar Pedido pelo WhatsApp • R$ ${totalAmount
-                .toFixed(2)
-                .replace('.', ',')}`}
+            : 'Enviar Pedido pelo WhatsApp'}
         </button>
       </form>
 

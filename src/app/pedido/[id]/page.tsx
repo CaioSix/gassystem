@@ -306,29 +306,28 @@ export default function OrderTrackingPage({
           {order.items.map((item) => (
             <div
               key={item.id}
-              style={{ display: 'flex', justifyContent: 'space-between' }}
+              style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}
             >
               <span>
                 {item.quantity}x {item.name}
               </span>
-              <strong>
-                R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
-              </strong>
             </div>
           ))}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: '1.15rem',
-              fontWeight: 800,
-              color: '#0b3d91',
-              marginBlockStart: '0.4rem',
-            }}
-          >
-            <span>Total</span>
-            <span>R$ {order.total.toFixed(2).replace('.', ',')}</span>
-          </div>
+          {order.total > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '1.15rem',
+                fontWeight: 800,
+                color: '#0b3d91',
+                marginBlockStart: '0.4rem',
+              }}
+            >
+              <span>Total</span>
+              <span>R$ {order.total.toFixed(2).replace('.', ',')}</span>
+            </div>
+          )}
         </div>
       </section>
 

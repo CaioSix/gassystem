@@ -770,31 +770,27 @@ Domingos 08 as 13:30.`;
                               }}
                             >
                               <span>
-                                {item.quantity}x {item.name}
-                              </span>
-                              <span>
-                                R${' '}
-                                {(item.price * item.quantity)
-                                  .toFixed(2)
-                                  .replace('.', ',')}
+                                • {item.quantity}x {item.name}
                               </span>
                             </div>
                           ))}
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              fontWeight: 800,
-                              fontSize: '1.08rem',
-                              color: '#0b3d91',
-                              marginBlockStart: '0.35rem',
-                            }}
-                          >
-                            <span>Total:</span>
-                            <span>
-                              R$ {order.total.toFixed(2).replace('.', ',')}
-                            </span>
-                          </div>
+                          {order.total > 0 && (
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontWeight: 800,
+                                fontSize: '1.08rem',
+                                color: '#0b3d91',
+                                marginBlockStart: '0.35rem',
+                              }}
+                            >
+                              <span>Total:</span>
+                              <span>
+                                R$ {order.total.toFixed(2).replace('.', ',')}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 

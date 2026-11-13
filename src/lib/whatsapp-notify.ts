@@ -24,17 +24,14 @@ export function formatNewOrderWhatsAppMessage(
 ): string {
   const shortId = order.id.slice(0, 6).toUpperCase();
   const itemsText = order.items
-    .map(
-      (i) =>
-        `• ${i.quantity}x ${i.name} (R$ ${(i.price * i.quantity)
-          .toFixed(2)
-          .replace('.', ',')})`
-    )
+    .map((i) => `• ${i.quantity}x ${i.name}`)
     .join('\n');
 
   const paymentText =
     PAYMENT_LABELS[order.payment_method] +
     (order.change_for ? ` (Troco para: ${order.change_for})` : '');
+
+  const totalText = order.total > 0 ? `\n💰 *Total:* R$ ${order.total.toFixed(2).replace('.', ',')}` : '';
 
   const base = originUrl || '';
   const quickAcceptLink = base
@@ -50,8 +47,8 @@ export function formatNewOrderWhatsAppMessage(
     `*Ponto de Referência:* ${order.reference || 'Não informado'}\n` +
     `*Telefone:* ${order.phone}\n\n` +
     `🛒 *Itens:*\n${itemsText}\n` +
-    `💳 *Pagamento:* ${paymentText}\n` +
-    `💰 *Total:* R$ ${order.total.toFixed(2).replace('.', ',')}` +
+    `💳 *Pagamento:* ${paymentText}` +
+    totalText +
     quickAcceptLink
   );
 }
