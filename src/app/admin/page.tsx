@@ -38,7 +38,7 @@ export default function AdminDashboardPage() {
   );
   const [copiedGreeting, setCopiedGreeting] = useState(false);
   const [autoAcceptedBanner, setAutoAcceptedBanner] = useState('');
-  const [originUrl, setOriginUrl] = useState('https://alexandre-gas.vercel.app');
+  const [originUrl, setOriginUrl] = useState('https://gassystem-alpha.vercel.app');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [dateFilter, setDateFilter] = useState(''); // 'YYYY-MM-DD' ou vazio para todos
 
@@ -530,48 +530,93 @@ Domingos 08 as 13:30.`;
         <section className="card">
           <h2 className="section-title">
             <MessageCircle size={22} color="#16a34a" aria-hidden="true" />
-            1. Mensagem Automática de Saudação no WhatsApp Business (Grátis)
+            1. Links Prontos para os 4 Telefones do WhatsApp Business
           </h2>
           <p style={{ color: '#475569', marginBlockEnd: '1rem', fontSize: '0.95rem' }}>
-            No aplicativo <strong>WhatsApp Business</strong> você não paga nada para enviar essa mensagem automática! Basta ir em{' '}
-            <strong>
-              Configurações → Ferramentas comerciais → Mensagem de saudação
-            </strong>
-            , ativar e colar o texto abaixo com o link do seu site:
+            No aplicativo <strong>WhatsApp Business</strong> de cada celular, vá em:
+            <br />
+            <strong>Configurações → Ferramentas comerciais → Mensagem de saudação</strong>
+            <br />
+            Copie o texto correspondente a cada aparelho abaixo (o link já está com o endereço <code>https://gassystem-alpha.vercel.app</code> e o número certo):
           </p>
 
-          <pre
-            style={{
-              background: '#f8fafc',
-              border: '1.5px solid #cbd5e1',
-              borderRadius: '10px',
-              padding: '1rem',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'inherit',
-              fontSize: '0.95rem',
-              marginBlockEnd: '1rem',
-            }}
-          >
-            {whatsappAutoReplyTemplate}
-          </pre>
+          <div style={{ display: 'grid', gap: '1rem', marginBlockEnd: '1.5rem' }}>
+            {getStoreWhatsAppNumbers().map((phone, idx) => {
+              const greetingForPhone = `Olá, 😃
+Alexandre Gás 
 
-          <button
-            type="button"
-            onClick={copyTemplate}
-            className="btn btn-success"
-          >
-            {copiedGreeting ? (
-              <>
-                <Check size={18} aria-hidden="true" />
-                Mensagem copiada com sucesso!
-              </>
-            ) : (
-              <>
-                <Copy size={18} aria-hidden="true" />
-                Copiar Mensagem para o WhatsApp Business
-              </>
-            )}
-          </button>
+Para fazer seu pedido super rápido com endereço, forma de pagamento e acompanhar a entrega ao vivo, toque no link abaixo:
+👉 https://gassystem-alpha.vercel.app/?tel=${phone}
+
+Ou, para que eu consiga te atender por aqui, preciso que responda:
+
+Nome:
+Endereço:
+Numero:
+Bairro:
+Telefone:
+
+É só copiar e colar e escrever os detalhes que precisamos para ser rápidos para você 🫵 😃
+
+Atendemos das 08 as 19:30hs de Seg a Sex.
+Aos Sábados 08 as 18:30.
+Domingos 08 as 13:30.`;
+
+              return (
+                <div
+                  key={phone}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '10px',
+                    padding: '1rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <strong style={{ color: '#0b3d91', fontSize: '1rem' }}>
+                      📱 Celular {idx + 1} ({phone})
+                    </strong>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(greetingForPhone);
+                        alert(`Mensagem do Celular ${idx + 1} copiada com sucesso!`);
+                      }}
+                      className="btn btn-success"
+                      style={{ minHeight: '36px', padding: '0.35rem 0.8rem', fontSize: '0.85rem' }}
+                    >
+                      <Copy size={15} aria-hidden="true" />
+                      Copiar Texto do Celular {idx + 1}
+                    </button>
+                  </div>
+                  <pre
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '0.75rem',
+                      whiteSpace: 'pre-wrap',
+                      fontFamily: 'inherit',
+                      fontSize: '0.85rem',
+                      color: '#334155',
+                      margin: 0,
+                    }}
+                  >
+                    {greetingForPhone}
+                  </pre>
+                </div>
+              );
+            })}
+          </div>
 
           <hr
             style={{
@@ -582,7 +627,7 @@ Domingos 08 as 13:30.`;
           />
 
           <h3 className="section-title" style={{ marginBlockEnd: '0.5rem' }}>
-            2. Como os 4 Telefones recebem o pedido juntos ao mesmo tempo
+            2. Como os 4 Telefones recebem o pedido
           </h3>
           <div style={{ color: '#334155', fontSize: '0.94rem', display: 'grid', gap: '0.75rem' }}>
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.85rem 1rem', borderRadius: '10px' }}>
@@ -590,50 +635,12 @@ Domingos 08 as 13:30.`;
               <div style={{ marginTop: '0.35rem', fontWeight: 700, color: '#0b3d91' }}>
                 {getStoreWhatsAppNumbers().join(' • ')}
               </div>
-              <div style={{ fontSize: '0.84rem', marginTop: '0.25rem', color: '#475569' }}>
-                Para configurar os 4 números na Vercel, basta separar por vírgula:
-                <br />
-                <code>NEXT_PUBLIC_STORE_WHATSAPP = 5511911111111,5511922222222,5511933333333,5511944444444</code>
-              </div>
             </div>
 
             <div>
-              <strong>🎯 Como fazer o pedido voltar EXATAMENTE para o celular que mandou o link:</strong>
+              <strong>🔔 Painel com Som nos Celulares / Computador:</strong>
               <br />
-              Na mensagem de saudação de cada um dos 4 WhatsApp Business, basta colocar no link o parâmetro <code>?tel=SEUNUMERO</code>.
-              <br />
-              Exemplos para cada celular:
-              <ul style={{ marginInlineStart: '1.25rem', marginTop: '0.35rem' }}>
-                {getStoreWhatsAppNumbers().map((phone, idx) => (
-                  <li key={phone} style={{ marginTop: '0.2rem' }}>
-                    <strong>Celular {idx + 1} ({phone}):</strong>{' '}
-                    <code>{originUrl}/?tel={phone}</code>
-                  </li>
-                ))}
-              </ul>
-              <span style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 600 }}>
-                Pronto! Quando o cliente clicar no link do Celular 2, a mensagem de pedido pronta voltará automaticamente para o Celular 2!
-              </span>
-            </div>
-
-            <div>
-              <strong>🔔 Forma A — Painel Aberto nos 4 Celulares (Grátis e Instantâneo):</strong>
-              <br />
-              Basta abrir <code>{originUrl}/admin</code> nos 4 celulares e deixar o botão <strong>&ldquo;Som Ativo&rdquo;</strong> ligado. Quando entrar um pedido novo, <strong>os 4 celulares tocam a campainha juntos na mesma hora!</strong> Assim que qualquer um dos 4 clicar em &ldquo;Aceitar Pedido&rdquo;, já muda nos outros 3 celulares para ninguém entregar duplicado.
-            </div>
-
-            <div>
-              <strong>💬 Forma B — Disparo Automático no WhatsApp dos 4 Celulares pela Lambda (Grátis via CallMeBot):</strong>
-              <br />
-              Como o WhatsApp do cliente só abre conversa com 1 número por vez, a nossa Lambda da Vercel dispara a mensagem para os 4 números em paralelo! Para ativar gratuitamente:
-              <ol style={{ marginInlineStart: '1.25rem', marginTop: '0.35rem' }}>
-                <li>Em cada um dos 4 celulares, adicione o contato <strong>+34 644 52 74 88</strong> e mande no WhatsApp a frase: <code>I allow callmebot to send me messages</code></li>
-                <li>O bot vai responder na hora com uma <code>apikey</code> para cada celular.</li>
-                <li>Na Vercel, crie a variável <code>WHATSAPP_RECIPIENTS</code> com os 4 números e suas chaves separados por vírgula:
-                  <br />
-                  <code>5511911111111:chave1,5511922222222:chave2,5511933333333:chave3,5511944444444:chave4</code>
-                </li>
-              </ol>
+              Basta abrir <code>https://gassystem-alpha.vercel.app/admin</code> nos aparelhos e deixar o botão <strong>&ldquo;Som Ativo&rdquo;</strong> ligado. Quando entrar um pedido novo, toca a campainha avisando!
             </div>
           </div>
         </section>
