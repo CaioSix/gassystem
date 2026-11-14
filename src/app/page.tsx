@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Clock,
   MapPin,
   CreditCard,
   ShoppingBag,
-  ShieldCheck,
   MessageCircle,
   CheckCircle2,
 } from 'lucide-react';
@@ -24,12 +22,16 @@ import {
   getPrimaryStoreWhatsApp,
 } from '@/lib/whatsapp-notify';
 
-export default function CustomerOrderPage() {
+function CustomerOrderContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
 
-  const storeWhatsApp = getPrimaryStoreWhatsApp();
+  // Se o link veio com ?tel=5511999999999 ou ?whatsapp=..., usa exatamente esse número.
+  // Senão, usa o número padrão da loja.
+  const urlTel = searchParams.get('tel') || searchParams.get('whatsapp') || searchParams.get('phone');
+  const targetWhatsApp = urlTel ? urlTel.replace(/\D/g, '') : getPrimaryStoreWhatsApp();
 
   // Default: 1x Botijão P13 selected for speed
   const [quantities, setQuantities] = useState<Record<string, number>>({
@@ -257,12 +259,11 @@ export default function CustomerOrderPage() {
       const origin =
         typeof window !== 'undefined' ? window.location.origin : '';
       const whatsappMsg = formatNewOrderWhatsAppMessage(createdOrder, origin);
-      const whatsappUrl = `https://wa.me/${storeWhatsApp}?text=${encodeURIComponent(
+      const whatsappUrl = `https://wa.me/${targetWhatsApp}?text=${encodeURIComponent(
         whatsappMsg
       )}`;
 
-      // Redireciona o cliente direto para o WhatsApp já com a mensagem preenchida
-      // No celular isso abre o app do WhatsApp instantaneamente
+      // Redireciona o cliente direto para o WhatsApp do celular específico que enviou o link
       window.location.href = whatsappUrl;
     } catch (err) {
       setSubmitError(
@@ -632,23 +633,15 @@ export default function CustomerOrderPage() {
         <p>
           <strong>Alexandre Gás</strong> — Segurança • Qualidade • Confiança
         </p>
-        <p style={{ marginBlockStart: '0.5rem' }}>
-          <Link
-            href="/admin"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              textDecoration: 'underline',
-              color: '#0b3d91',
-              fontWeight: 600,
-            }}
-          >
-            <ShieldCheck size={14} aria-hidden="true" />
-            Acesso do Dono / Gerenciamento de Pedidos
-          </Link>
-        </p>
       </footer>
     </main>
+  );
+}
+
+export default function CustomerOrderPage() {
+  return (
+    <Suspense fallback={null}>
+      <CustomerOrderContent />
+    </Suspense>
   );
 }

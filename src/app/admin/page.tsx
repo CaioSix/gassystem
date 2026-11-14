@@ -598,6 +598,25 @@ Domingos 08 as 13:30.`;
             </div>
 
             <div>
+              <strong>🎯 Como fazer o pedido voltar EXATAMENTE para o celular que mandou o link:</strong>
+              <br />
+              Na mensagem de saudação de cada um dos 4 WhatsApp Business, basta colocar no link o parâmetro <code>?tel=SEUNUMERO</code>.
+              <br />
+              Exemplos para cada celular:
+              <ul style={{ marginInlineStart: '1.25rem', marginTop: '0.35rem' }}>
+                {getStoreWhatsAppNumbers().map((phone, idx) => (
+                  <li key={phone} style={{ marginTop: '0.2rem' }}>
+                    <strong>Celular {idx + 1} ({phone}):</strong>{' '}
+                    <code>{originUrl}/?tel={phone}</code>
+                  </li>
+                ))}
+              </ul>
+              <span style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 600 }}>
+                Pronto! Quando o cliente clicar no link do Celular 2, a mensagem de pedido pronta voltará automaticamente para o Celular 2!
+              </span>
+            </div>
+
+            <div>
               <strong>🔔 Forma A — Painel Aberto nos 4 Celulares (Grátis e Instantâneo):</strong>
               <br />
               Basta abrir <code>{originUrl}/admin</code> nos 4 celulares e deixar o botão <strong>&ldquo;Som Ativo&rdquo;</strong> ligado. Quando entrar um pedido novo, <strong>os 4 celulares tocam a campainha juntos na mesma hora!</strong> Assim que qualquer um dos 4 clicar em &ldquo;Aceitar Pedido&rdquo;, já muda nos outros 3 celulares para ninguém entregar duplicado.
