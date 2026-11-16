@@ -28,10 +28,39 @@ function CustomerOrderContent() {
   const formRef = useRef<HTMLFormElement>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
 
-  // Se o link veio com ?tel=5511999999999 ou ?whatsapp=..., usa exatamente esse número.
-  // Senão, usa o número padrão da loja.
-  const urlTel = searchParams.get('tel') || searchParams.get('whatsapp') || searchParams.get('phone');
-  const targetWhatsApp = urlTel ? urlTel.replace(/\D/g, '') : getPrimaryStoreWhatsApp();
+  // Número de WhatsApp dinâmico:
+  // 1. Prioridade: Parâmetro da URL (?tel=... ou ?phone=... ou ?whatsapp=...)
+  // 2. Se não houver na URL, busca do localStorage (caso o cliente tenha entrado pelo link antes)
+  // 3. Fallback: número padrão configurado na variável de ambiente
+  const [storeWhatsApp, setStoreWhatsApp] = useState<string>('');
+
+  useEffect(() => {
+    const fromUrl =
+      searchParams.get('tel') ||
+      searchParams.get('phone') ||
+      searchParams.get('whatsapp');
+
+    if (fromUrl) {
+      const clean = fromUrl.replace(/\D/g, '');
+      if (clean) {
+        setStoreWhatsApp(clean);
+        try {
+          localStorage.setItem('alexandre_gas_target_tel', clean);
+        } catch {}
+        return;
+      }
+    }
+
+    try {
+      const saved = localStorage.getItem('alexandre_gas_target_tel');
+      if (saved) {
+        setStoreWhatsApp(saved);
+        return;
+      }
+    } catch {}
+
+    setStoreWhatsApp(getPrimaryStoreWhatsApp());
+  }, [searchParams]);
 
   // Default: 1x Botijão P13 selected for speed
   const [quantities, setQuantities] = useState<Record<string, number>>({
@@ -259,7 +288,15 @@ function CustomerOrderContent() {
       const origin =
         typeof window !== 'undefined' ? window.location.origin : '';
       const whatsappMsg = formatNewOrderWhatsAppMessage(createdOrder, origin);
-      const whatsappUrl = `https://wa.me/${targetWhatsApp}?text=${encodeURIComponent(
+
+      // Garante o telefone destino: state > URL param > localStorage > fallback
+      const finalWhatsApp =
+        storeWhatsApp ||
+        (new URLSearchParams(window.location.search).get('tel') || '').replace(/\D/g, '') ||
+        (new URLSearchParams(window.location.search).get('phone') || '').replace(/\D/g, '') ||
+        getPrimaryStoreWhatsApp();
+
+      const whatsappUrl = `https://wa.me/${finalWhatsApp}?text=${encodeURIComponent(
         whatsappMsg
       )}`;
 

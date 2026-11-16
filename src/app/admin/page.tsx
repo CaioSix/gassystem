@@ -530,23 +530,39 @@ Domingos 08 as 13:30.`;
         <section className="card">
           <h2 className="section-title">
             <MessageCircle size={22} color="#16a34a" aria-hidden="true" />
-            1. Links Prontos para os 4 Telefones do WhatsApp Business
+            1. Gerador de Mensagem de Saudação por Telefone (Dinâmico)
           </h2>
           <p style={{ color: '#475569', marginBlockEnd: '1rem', fontSize: '0.95rem' }}>
-            No aplicativo <strong>WhatsApp Business</strong> de cada celular, vá em:
-            <br />
-            <strong>Configurações → Ferramentas comerciais → Mensagem de saudação</strong>
-            <br />
-            Copie o texto correspondente a cada aparelho abaixo (o link já está com o endereço <code>https://gassystem-alpha.vercel.app</code> e o número certo):
+            Digite o telefone do celular que vai atender hoje. O sistema gera automaticamente o texto pronto para colar no WhatsApp Business daquele celular:
           </p>
 
-          <div style={{ display: 'grid', gap: '1rem', marginBlockEnd: '1.5rem' }}>
-            {getStoreWhatsAppNumbers().map((phone, idx) => {
-              const greetingForPhone = `Olá, 😃
+          <div
+            style={{
+              background: '#eff6ff',
+              border: '1.5px solid #0b3d91',
+              borderRadius: '10px',
+              padding: '1rem',
+              marginBlockEnd: '1.25rem',
+            }}
+          >
+            <label htmlFor="custom-phone-input" style={{ fontWeight: 700, color: '#041b4d', display: 'block', marginBottom: '0.4rem' }}>
+              📱 Telefone do atendente (com DDD, ex: 5512981186321):
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <input
+                id="custom-phone-input"
+                type="text"
+                placeholder="Ex: 5512981186321"
+                defaultValue={getStoreWhatsAppNumbers()[0] || '5512981186321'}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  const pre = document.getElementById('generated-greeting-pre');
+                  if (pre) {
+                    pre.textContent = `Olá, 😃
 Alexandre Gás 
 
 Para fazer seu pedido super rápido com endereço, forma de pagamento e acompanhar a entrega ao vivo, toque no link abaixo:
-👉 https://gassystem-alpha.vercel.app/?tel=${phone}
+👉 https://gassystem-alpha.vercel.app/?tel=${val || 'SEUNUMERO'}
 
 Ou, para que eu consiga te atender por aqui, preciso que responda:
 
@@ -561,61 +577,70 @@ Telefone:
 Atendemos das 08 as 19:30hs de Seg a Sex.
 Aos Sábados 08 as 18:30.
 Domingos 08 as 13:30.`;
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  minWidth: '220px',
+                  minHeight: '44px',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '8px',
+                  border: '1.5px solid #64748b',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                }}
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  const pre = document.getElementById('generated-greeting-pre');
+                  if (pre?.textContent) {
+                    await navigator.clipboard.writeText(pre.textContent);
+                    alert('Mensagem com o link do seu telefone copiada com sucesso!');
+                  }
+                }}
+                className="btn btn-success"
+                style={{ minHeight: '44px', padding: '0.5rem 1.25rem' }}
+              >
+                <Copy size={16} aria-hidden="true" />
+                Copiar Mensagem Pronta
+              </button>
+            </div>
 
-              return (
-                <div
-                  key={phone}
-                  style={{
-                    background: '#f8fafc',
-                    border: '1.5px solid #cbd5e1',
-                    borderRadius: '10px',
-                    padding: '1rem',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
-                      flexWrap: 'wrap',
-                      gap: '0.5rem',
-                    }}
-                  >
-                    <strong style={{ color: '#0b3d91', fontSize: '1rem' }}>
-                      📱 Celular {idx + 1} ({phone})
-                    </strong>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(greetingForPhone);
-                        alert(`Mensagem do Celular ${idx + 1} copiada com sucesso!`);
-                      }}
-                      className="btn btn-success"
-                      style={{ minHeight: '36px', padding: '0.35rem 0.8rem', fontSize: '0.85rem' }}
-                    >
-                      <Copy size={15} aria-hidden="true" />
-                      Copiar Texto do Celular {idx + 1}
-                    </button>
-                  </div>
-                  <pre
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '0.75rem',
-                      whiteSpace: 'pre-wrap',
-                      fontFamily: 'inherit',
-                      fontSize: '0.85rem',
-                      color: '#334155',
-                      margin: 0,
-                    }}
-                  >
-                    {greetingForPhone}
-                  </pre>
-                </div>
-              );
-            })}
+            <pre
+              id="generated-greeting-pre"
+              style={{
+                marginTop: '1rem',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
+                padding: '0.85rem',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'inherit',
+                fontSize: '0.9rem',
+                color: '#1e293b',
+              }}
+            >
+{`Olá, 😃
+Alexandre Gás 
+
+Para fazer seu pedido super rápido com endereço, forma de pagamento e acompanhar a entrega ao vivo, toque no link abaixo:
+👉 https://gassystem-alpha.vercel.app/?tel=${getStoreWhatsAppNumbers()[0] || '5512981186321'}
+
+Ou, para que eu consiga te atender por aqui, preciso que responda:
+
+Nome:
+Endereço:
+Numero:
+Bairro:
+Telefone:
+
+É só copiar e colar e escrever os detalhes que precisamos para ser rápidos para você 🫵 😃
+
+Atendemos das 08 as 19:30hs de Seg a Sex.
+Aos Sábados 08 as 18:30.
+Domingos 08 as 13:30.`}
+            </pre>
           </div>
 
           <hr
@@ -627,21 +652,12 @@ Domingos 08 as 13:30.`;
           />
 
           <h3 className="section-title" style={{ marginBlockEnd: '0.5rem' }}>
-            2. Como os 4 Telefones recebem o pedido
+            2. Como funciona o redirecionamento dinâmico
           </h3>
           <div style={{ color: '#334155', fontSize: '0.94rem', display: 'grid', gap: '0.75rem' }}>
-            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.85rem 1rem', borderRadius: '10px' }}>
-              <strong>📱 Telefones configurados em NEXT_PUBLIC_STORE_WHATSAPP ({getStoreWhatsAppNumbers().length}):</strong>
-              <div style={{ marginTop: '0.35rem', fontWeight: 700, color: '#0b3d91' }}>
-                {getStoreWhatsAppNumbers().join(' • ')}
-              </div>
-            </div>
-
-            <div>
-              <strong>🔔 Painel com Som nos Celulares / Computador:</strong>
-              <br />
-              Basta abrir <code>https://gassystem-alpha.vercel.app/admin</code> nos aparelhos e deixar o botão <strong>&ldquo;Som Ativo&rdquo;</strong> ligado. Quando entrar um pedido novo, toca a campainha avisando!
-            </div>
+            <p>
+              Qualquer número colocado na URL (ex: <code>?tel=5512981186321</code>) é gravado no navegador do cliente. Quando ele clicar em <strong>&ldquo;Enviar Pedido pelo WhatsApp&rdquo;</strong>, a mensagem abre exatamente para o número informado na URL!
+            </p>
           </div>
         </section>
       )}
