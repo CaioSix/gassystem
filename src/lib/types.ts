@@ -44,12 +44,8 @@ export const PRODUCTS: Product[] = [
   {
     id: 'agua-20l',
     name: 'Galão de Água Mineral 20L',
-    description: 'Água mineral natural (troca de galão)',
-  },
-  {
-    id: 'gas-p45',
-    name: 'Cilindro de Gás P45 (45kg)',
-    description: 'Ideal para comércio e condomínios',
+    description: 'Apenas retirada no local (não entregamos)',
+    badge: 'Retirada no local',
   },
   {
     id: 'kit-regulador',
